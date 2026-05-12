@@ -3,13 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { produtos } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function getProdutos() {
-  return db.query.produtos.findMany({
-    orderBy: (p, { asc }) => [asc(p.nome)],
+  const produtos = await db.produto.findMany({
+    orderBy: { nome: "asc" },
   });
+  
+  return produtos.map(p => ({
+    ...p,
+    precoVenda: p.precoVenda.toString(),
+    precoCusto: p.precoCusto.toString(),
+  }));
 }
 
 export async function criarProduto(data: {
@@ -22,12 +26,14 @@ export async function criarProduto(data: {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Não autenticado");
 
-  await db.insert(produtos).values({
-    nome: data.nome,
-    precoVenda: data.precoVenda.toFixed(2),
-    precoCusto: data.precoCusto.toFixed(2),
-    estoqueAtual: data.estoqueAtual,
-    alertaEstoque: data.alertaEstoque,
+  await db.produto.create({
+    data: {
+      nome: data.nome,
+      precoVenda: data.precoVenda,
+      precoCusto: data.precoCusto,
+      estoqueAtual: data.estoqueAtual,
+      alertaEstoque: data.alertaEstoque,
+    }
   });
 
   revalidatePath("/estoque");
@@ -38,7 +44,10 @@ export async function toggleProduto(id: string, ativo: boolean) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Não autenticado");
 
-  await db.update(produtos).set({ ativo }).where(eq(produtos.id, id));
+  await db.produto.update({
+    where: { id },
+    data: { ativo },
+  });
 
   revalidatePath("/estoque");
   revalidatePath("/");
@@ -56,15 +65,15 @@ export async function editarProduto(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Não autenticado");
 
-  await db
-    .update(produtos)
-    .set({
+  await db.produto.update({
+    where: { id },
+    data: {
       nome: data.nome,
-      precoVenda: data.precoVenda.toFixed(2),
-      precoCusto: data.precoCusto.toFixed(2),
+      precoVenda: data.precoVenda,
+      precoCusto: data.precoCusto,
       alertaEstoque: data.alertaEstoque,
-    })
-    .where(eq(produtos.id, id));
+    }
+  });
 
   revalidatePath("/estoque");
   revalidatePath("/");

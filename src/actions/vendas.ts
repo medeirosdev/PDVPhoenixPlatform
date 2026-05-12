@@ -3,8 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { vendas, vendaItens, produtos } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
 
 export type ItemCarrinho = {
   produtoId: string;
@@ -23,31 +21,32 @@ export async function registrarVenda(itens: ItemCarrinho[]) {
     0
   );
 
-  const [venda] = await db
-    .insert(vendas)
-    .values({
-      userId: session.user.id,
-      valorTotal: valorTotal.toFixed(2),
-    })
-    .returning();
+  const venda = await db.$transaction(async (tx) => {
+    const v = await tx.venda.create({
+      data: {
+        userId: session.user.id,
+        valorTotal,
+        itens: {
+          create: itens.map((item) => ({
+            produtoId: item.produtoId,
+            quantidade: item.quantidade,
+            precoUnitario: item.precoUnitario,
+          })),
+        },
+      },
+    });
 
-  await db.insert(vendaItens).values(
-    itens.map((item) => ({
-      vendaId: venda.id,
-      produtoId: item.produtoId,
-      quantidade: item.quantidade,
-      precoUnitario: item.precoUnitario.toFixed(2),
-    }))
-  );
+    for (const item of itens) {
+      await tx.produto.update({
+        where: { id: item.produtoId },
+        data: {
+          estoqueAtual: { decrement: item.quantidade },
+        },
+      });
+    }
 
-  for (const item of itens) {
-    await db
-      .update(produtos)
-      .set({
-        estoqueAtual: sql`${produtos.estoqueAtual} - ${item.quantidade}`,
-      })
-      .where(eq(produtos.id, item.produtoId));
-  }
+    return v;
+  });
 
   revalidatePath("/");
   revalidatePath("/estoque");
@@ -57,8 +56,14 @@ export async function registrarVenda(itens: ItemCarrinho[]) {
 }
 
 export async function getProdutosAtivos() {
-  return db.query.produtos.findMany({
-    where: (p, { eq }) => eq(p.ativo, true),
-    orderBy: (p, { asc }) => [asc(p.nome)],
+  const produtos = await db.produto.findMany({
+    where: { ativo: true },
+    orderBy: { nome: "asc" },
   });
+  
+  return produtos.map(p => ({
+    ...p,
+    precoVenda: p.precoVenda.toString(),
+    precoCusto: p.precoCusto.toString(),
+  }));
 }

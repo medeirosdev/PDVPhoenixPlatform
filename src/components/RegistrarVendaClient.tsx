@@ -12,10 +12,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { registrarVenda } from "@/actions/vendas";
-import type { produtos as ProdutoType } from "@/db/schema";
-import { InferSelectModel } from "drizzle-orm";
 
-type Produto = InferSelectModel<typeof ProdutoType>;
+type Produto = {
+  id: string;
+  nome: string;
+  precoVenda: string;
+  estoqueAtual: number;
+};
 type Carrinho = Record<string, number>;
 
 export function RegistrarVendaClient({ produtos }: { produtos: Produto[] }) {

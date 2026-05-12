@@ -1,6 +1,4 @@
 import { db } from "@/db";
-import { vendas, vendaItens, produtos } from "@/db/schema";
-import { gte, sql, desc } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraficoVendas } from "@/components/GraficoVendas";
 import { StockBadge } from "@/components/StockBadge";
@@ -14,14 +12,10 @@ async function getDadosDashboard() {
   inicioSemana.setDate(agora.getDate() - 6);
   inicioSemana.setHours(0, 0, 0, 0);
 
-  const vendasSemana = await db
-    .select({
-      data: vendas.dataVenda,
-      total: vendas.valorTotal,
-    })
-    .from(vendas)
-    .where(gte(vendas.dataVenda, inicioSemana))
-    .orderBy(vendas.dataVenda);
+  const vendasSemana = await db.venda.findMany({
+    where: { dataVenda: { gte: inicioSemana } },
+    orderBy: { dataVenda: "asc" },
+  });
 
   const diasMap: Record<string, number> = {};
   for (let i = 6; i >= 0; i--) {
@@ -31,12 +25,15 @@ async function getDadosDashboard() {
     diasMap[key] = 0;
   }
 
+  let faturamentoTotal = 0;
   for (const v of vendasSemana) {
-    const key = new Date(v.data).toLocaleDateString("pt-BR", {
+    const key = new Date(v.dataVenda).toLocaleDateString("pt-BR", {
       weekday: "short",
       day: "2-digit",
     });
-    if (key in diasMap) diasMap[key] += parseFloat(v.total);
+    const totalVenda = Number(v.valorTotal);
+    if (key in diasMap) diasMap[key] += totalVenda;
+    faturamentoTotal += totalVenda;
   }
 
   const dadosGrafico = Object.entries(diasMap).map(([dia, total]) => ({
@@ -44,41 +41,39 @@ async function getDadosDashboard() {
     total: parseFloat(total.toFixed(2)),
   }));
 
-  const faturamentoTotal = vendasSemana.reduce(
-    (acc, v) => acc + parseFloat(v.total),
-    0
-  );
-
-  const [custoSemana] = await db
-    .select({
-      custoTotal: sql<string>`coalesce(sum(${vendaItens.quantidade} * ${vendaItens.precoUnitario} * (${produtos.precoCusto}::numeric / NULLIF(${produtos.precoVenda}::numeric, 0))), 0)`,
-    })
-    .from(vendaItens)
-    .innerJoin(vendas, sql`${vendaItens.vendaId} = ${vendas.id}`)
-    .innerJoin(produtos, sql`${vendaItens.produtoId} = ${produtos.id}`)
-    .where(gte(vendas.dataVenda, inicioSemana));
-
-  const lucro = faturamentoTotal - (parseFloat(custoSemana?.custoTotal ?? "0") || 0);
-  const ticketMedio = vendasSemana.length > 0 ? faturamentoTotal / vendasSemana.length : 0;
-
-  const produtosAlerta = await db.query.produtos.findMany({
-    where: (p, { and, lte, eq }) =>
-      and(eq(p.ativo, true), lte(p.estoqueAtual, p.alertaEstoque)),
-    orderBy: (p, { asc }) => [asc(p.estoqueAtual)],
+  const itensVendidos = await db.vendaItem.findMany({
+    where: { venda: { dataVenda: { gte: inicioSemana } } },
+    include: { produto: true },
   });
 
-  const topVendidos = await db
-    .select({
-      nome: produtos.nome,
-      totalVendido: sql<string>`sum(${vendaItens.quantidade})`,
-    })
-    .from(vendaItens)
-    .innerJoin(vendas, sql`${vendaItens.vendaId} = ${vendas.id}`)
-    .innerJoin(produtos, sql`${vendaItens.produtoId} = ${produtos.id}`)
-    .where(gte(vendas.dataVenda, inicioSemana))
-    .groupBy(produtos.id, produtos.nome)
-    .orderBy(desc(sql`sum(${vendaItens.quantidade})`))
-    .limit(5);
+  let custoSemana = 0;
+  const topVendidosMap: Record<string, { nome: string; totalVendido: number }> = {};
+
+  for (const item of itensVendidos) {
+    const qtde = item.quantidade;
+    const custo = Number(item.produto.precoCusto);
+    custoSemana += qtde * custo;
+
+    if (!topVendidosMap[item.produtoId]) {
+      topVendidosMap[item.produtoId] = { nome: item.produto.nome, totalVendido: 0 };
+    }
+    topVendidosMap[item.produtoId].totalVendido += qtde;
+  }
+
+  const lucro = faturamentoTotal - custoSemana;
+  const ticketMedio = vendasSemana.length > 0 ? faturamentoTotal / vendasSemana.length : 0;
+
+  const todosProdutosAtivos = await db.produto.findMany({
+    where: { ativo: true },
+  });
+
+  const produtosAlerta = todosProdutosAtivos
+    .filter((p) => p.estoqueAtual <= p.alertaEstoque)
+    .sort((a, b) => a.estoqueAtual - b.estoqueAtual);
+
+  const topVendidos = Object.values(topVendidosMap)
+    .sort((a, b) => b.totalVendido - a.totalVendido)
+    .slice(0, 5);
 
   return {
     dadosGrafico,

@@ -13,10 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { registrarReposicao } from "@/actions/reposicao";
-import type { InferSelectModel } from "drizzle-orm";
-import type { produtos as ProdutoType } from "@/db/schema";
 
-type Produto = InferSelectModel<typeof ProdutoType>;
+type Produto = {
+  id: string;
+  nome: string;
+  estoqueAtual: number;
+};
 
 export function ReposicaoForm({ produtos }: { produtos: Produto[] }) {
   const [produtoId, setProdutoId] = useState("");

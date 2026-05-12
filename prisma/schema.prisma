@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String             @id @default(uuid()) @db.Uuid
+  name         String             @db.VarChar(100)
+  email        String             @unique @db.VarChar(255)
+  passwordHash String             @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  vendas       Venda[]
+  reposicoes   ReposicaoEstoque[]
+
+  @@map("users")
+}
+
+model Produto {
+  id            String             @id @default(uuid()) @db.Uuid
+  nome          String             @db.VarChar(150)
+  precoVenda    Decimal            @map("preco_venda") @db.Decimal(10, 2)
+  precoCusto    Decimal            @map("preco_custo") @db.Decimal(10, 2)
+  estoqueAtual  Int                @default(0) @map("estoque_atual")
+  alertaEstoque Int                @default(5) @map("alerta_estoque")
+  ativo         Boolean            @default(true)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  vendaItens    VendaItem[]
+  reposicoes    ReposicaoEstoque[]
+
+  @@map("produtos")
+}
+
+model Venda {
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  user       User        @relation(fields: [userId], references: [id])
+  valorTotal Decimal     @map("valor_total") @db.Decimal(10, 2)
+  dataVenda  DateTime    @default(now()) @map("data_venda")
+  itens      VendaItem[]
+
+  @@map("vendas")
+}
+
+model VendaItem {
+  id            String  @id @default(uuid()) @db.Uuid
+  vendaId       String  @map("venda_id") @db.Uuid
+  venda         Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produtoId     String  @map("produto_id") @db.Uuid
+  produto       Produto @relation(fields: [produtoId], references: [id])
+  quantidade    Int
+  precoUnitario Decimal @map("preco_unitario") @db.Decimal(10, 2)
+
+  @@map("venda_itens")
+}
+
+model ReposicaoEstoque {
+  id                 String   @id @default(uuid()) @db.Uuid
+  produtoId          String   @map("produto_id") @db.Uuid
+  produto            Produto  @relation(fields: [produtoId], references: [id])
+  userId             String   @map("user_id") @db.Uuid
+  user               User     @relation(fields: [userId], references: [id])
+  quantidadeComprada Int      @map("quantidade_comprada")
+  custoTotal         Decimal  @map("custo_total") @db.Decimal(10, 2)
+  dataCompra         DateTime @default(now()) @map("data_compra")
+
+  @@map("reposicao_estoque")
+}
