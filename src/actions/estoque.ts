@@ -60,6 +60,7 @@ export async function editarProduto(
     precoVenda: number;
     precoCusto: number;
     alertaEstoque: number;
+    estoqueAtual: number;
   }
 ) {
   const session = await auth();
@@ -72,6 +73,7 @@ export async function editarProduto(
       precoVenda: data.precoVenda,
       precoCusto: data.precoCusto,
       alertaEstoque: data.alertaEstoque,
+      estoqueAtual: data.estoqueAtual,
     }
   });
 

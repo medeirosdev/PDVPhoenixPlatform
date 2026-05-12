@@ -1,4 +1,5 @@
 import { getProdutos } from "@/actions/estoque";
+import { EditarProdutoDialog } from "@/components/EditarProdutoDialog";
 import { StockBadge } from "@/components/StockBadge";
 import { NovoProdutoDialog } from "@/components/NovoProdutoDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,11 +70,12 @@ export default async function EstoquePage() {
                           <span className="text-primary/80">{margem.toFixed(0)}% margem</span>
                         </div>
                       </div>
-                      <div className="ml-3 shrink-0">
+                      <div className="ml-3 shrink-0 flex items-center gap-2">
                         <StockBadge
                           estoqueAtual={prod.estoqueAtual}
                           alertaEstoque={prod.alertaEstoque}
                         />
+                        <EditarProdutoDialog produto={prod} />
                       </div>
                     </div>
                     {i < produtos.length - 1 && (
