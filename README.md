@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDVPhoenixPlatform
 
-## Getting Started
+Sistema de controle de vendas e estoque para vendinha interna de equipe. Interface mobile-first com tema escuro preto/laranja.
 
-First, run the development server:
+## Stack
+
+- **Next.js 14** (App Router) + TypeScript
+- **Tailwind CSS v4** — dark mode preto/laranja
+- **shadcn/ui** (base-ui) — componentes acessíveis
+- **Drizzle ORM** — schema type-safe com PostgreSQL
+- **NextAuth v5** — autenticação com email/senha
+- **Recharts** — gráficos de vendas
+
+## Funcionalidades
+
+- Registro de vendas com carrinho multi-item
+- Controle de estoque com alertas de reposição
+- Formulário de entrada de estoque com histórico
+- Dashboard semanal: faturamento, lucro bruto, ticket médio, mais vendidos
+
+## Setup
+
+### 1. Variáveis de ambiente
+
+Copie `.env.example` para `.env.local` e preencha:
+
+```env
+DATABASE_URL=postgresql://usuario:senha@host:5432/banco
+AUTH_SECRET=   # openssl rand -base64 32
+AUTH_URL=http://localhost:3000
+```
+
+### 2. Banco de dados
+
+```bash
+npm run db:push    # cria as tabelas no banco
+npm run db:seed    # cria usuário admin e produtos de exemplo
+```
+
+Credenciais do seed: `admin@vendinha.com` / `vendinha123`
+
+### 3. Desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run db:push` | Aplica schema no banco |
+| `npm run db:seed` | Popula dados iniciais |
+| `npm run db:studio` | UI do Drizzle para inspecionar o banco |
 
-## Learn More
+## Deploy (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Conecte o repositório na Vercel
+2. Configure as variáveis de ambiente (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`)
+3. Deploy automático no push para `main`
