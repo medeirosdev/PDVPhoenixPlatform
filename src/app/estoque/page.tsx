@@ -4,6 +4,8 @@ import { NovoProdutoDialog } from "@/components/NovoProdutoDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Package } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function EstoquePage() {
   const produtos = await getProdutos();
 

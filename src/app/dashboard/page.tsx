@@ -6,6 +6,8 @@ import { GraficoVendas } from "@/components/GraficoVendas";
 import { StockBadge } from "@/components/StockBadge";
 import { TrendingUp, DollarSign, ShoppingBag, AlertTriangle } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getDadosDashboard() {
   const agora = new Date();
   const inicioSemana = new Date(agora);

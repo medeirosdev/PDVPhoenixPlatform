@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RefreshCw } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReposicaoPage() {
   const [produtos, historico] = await Promise.all([
     getProdutos(),

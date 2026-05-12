@@ -1,6 +1,8 @@
 import { getProdutosAtivos } from "@/actions/vendas";
 import { RegistrarVendaClient } from "@/components/RegistrarVendaClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const produtos = await getProdutosAtivos();
 
