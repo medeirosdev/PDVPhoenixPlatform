@@ -7,7 +7,7 @@ Sistema de controle de vendas e estoque para vendinha interna de equipe. Interfa
 - **Next.js 14** (App Router) + TypeScript
 - **Tailwind CSS v4** — dark mode preto/laranja
 - **shadcn/ui** (base-ui) — componentes acessíveis
-- **Drizzle ORM** — schema type-safe com PostgreSQL
+- **Prisma ORM** — schema type-safe com PostgreSQL
 - **NextAuth v5** — autenticação com email/senha
 - **Recharts** — gráficos de vendas
 
@@ -33,11 +33,10 @@ AUTH_URL=http://localhost:3000
 ### 2. Banco de dados
 
 ```bash
-npm run db:push    # cria as tabelas no banco
-npm run db:seed    # cria usuário admin e produtos de exemplo
+python3 db.py init    # cria as tabelas no banco e usuário de teste
 ```
 
-Credenciais do seed: `admin@vendinha.com` / `vendinha123`
+Credenciais do seed: `admin@vendinha.com` / `123`
 
 ### 3. Desenvolvimento
 
@@ -53,9 +52,9 @@ Abra [http://localhost:3000](http://localhost:3000).
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
-| `npm run db:push` | Aplica schema no banco |
+| `npm run db:push` | Aplica schema no banco (usando Prisma) |
 | `npm run db:seed` | Popula dados iniciais |
-| `npm run db:studio` | UI do Drizzle para inspecionar o banco |
+| `npm run db:studio` | UI do Prisma para inspecionar o banco |
 
 ## Deploy (Vercel)
 

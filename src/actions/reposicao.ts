@@ -11,12 +11,13 @@ export async function registrarReposicao(data: {
 }) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Não autenticado");
+  const userId = session.user.id;
 
   await db.$transaction([
     db.reposicaoEstoque.create({
       data: {
         produtoId: data.produtoId,
-        userId: session.user.id,
+        userId: userId,
         quantidadeComprada: data.quantidade,
         custoTotal: data.custoTotal,
       }

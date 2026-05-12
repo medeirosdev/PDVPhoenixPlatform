@@ -14,6 +14,8 @@ export async function registrarVenda(itens: ItemCarrinho[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Não autenticado");
 
+  const userId = session.user.id;
+
   if (itens.length === 0) throw new Error("Carrinho vazio");
 
   const valorTotal = itens.reduce(
@@ -24,7 +26,7 @@ export async function registrarVenda(itens: ItemCarrinho[]) {
   const venda = await db.$transaction(async (tx) => {
     const v = await tx.venda.create({
       data: {
-        userId: session.user.id,
+        userId: userId,
         valorTotal,
         itens: {
           create: itens.map((item) => ({
