@@ -54,10 +54,10 @@ export default function LoginPage() {
             <Input
               id="email"
               name="email"
-              type="email"
-              placeholder="seu@email.com"
+              type="text"
+              placeholder="usuário"
               required
-              autoComplete="email"
+              autoComplete="username"
               className="h-10"
             />
           </div>
