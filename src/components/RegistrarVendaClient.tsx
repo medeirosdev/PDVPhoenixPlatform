@@ -118,7 +118,7 @@ export function RegistrarVendaClient({ produtos }: { produtos: Produto[] }) {
                       disabled={semEstoque}
                       onClick={() => add(prod.id)}
                     >
-                      {semEstoque ? "Sem estoque" : "+ Adicionar"}
+                      {semEstoque ? "Sem estoque" : "Vender"}
                     </Button>
                   ) : (
                     <div className="flex items-center justify-between rounded-lg bg-muted px-1 py-0.5">
