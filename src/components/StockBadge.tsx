@@ -1,5 +1,3 @@
-import { Badge } from "@/components/ui/badge";
-
 type Props = {
   estoqueAtual: number;
   alertaEstoque: number;
@@ -7,18 +5,22 @@ type Props = {
 
 export function StockBadge({ estoqueAtual, alertaEstoque }: Props) {
   if (estoqueAtual === 0) {
-    return <Badge variant="destructive">Sem estoque</Badge>;
+    return (
+      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-red-500/12 text-red-400 ring-1 ring-red-500/20">
+        Sem estoque
+      </span>
+    );
   }
   if (estoqueAtual <= alertaEstoque) {
     return (
-      <Badge className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/20">
-        Baixo ({estoqueAtual})
-      </Badge>
+      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-amber-500/12 text-amber-400 ring-1 ring-amber-500/20">
+        Baixo · {estoqueAtual}
+      </span>
     );
   }
   return (
-    <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/20">
+    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
       {estoqueAtual} un.
-    </Badge>
+    </span>
   );
 }

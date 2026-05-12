@@ -3,6 +3,7 @@ import { getHistoricoReposicao } from "@/actions/reposicao";
 import { ReposicaoForm } from "@/components/ReposicaoForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { RefreshCw } from "lucide-react";
 
 export default async function ReposicaoPage() {
   const [produtos, historico] = await Promise.all([
@@ -14,47 +15,54 @@ export default async function ReposicaoPage() {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="max-w-lg mx-auto space-y-6">
-        <h1 className="text-xl font-bold">Reposição de Estoque</h1>
+      <div className="max-w-lg mx-auto space-y-5">
+        <div>
+          <h1 className="text-lg font-semibold">Reposição</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Registre uma nova entrada de estoque</p>
+        </div>
 
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="pt-5 pb-5">
             <ReposicaoForm produtos={produtosAtivos} />
           </CardContent>
         </Card>
 
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Histórico recente
-          </h2>
+          </p>
           {historico.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8 text-sm">
-              Nenhuma reposição registrada ainda.
-            </p>
+            <div className="flex flex-col items-center gap-2 py-10 text-center">
+              <RefreshCw className="h-8 w-8 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">Nenhuma reposição registrada ainda.</p>
+            </div>
           ) : (
-            historico.map((rep, i) => (
-              <div key={rep.id}>
-                <div className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm font-medium">{rep.produto.nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {rep.quantidadeComprada} un. ·{" "}
-                      {new Date(rep.dataCompra).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+            <Card>
+              <CardContent className="p-0">
+                {historico.map((rep, i) => (
+                  <div key={rep.id}>
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium">{rep.produto.nome}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          +{rep.quantidadeComprada} un. ·{" "}
+                          {new Date(rep.dataCompra).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums">
+                        R$ {parseFloat(rep.custoTotal).toFixed(2).replace(".", ",")}
+                      </span>
+                    </div>
+                    {i < historico.length - 1 && <Separator />}
                   </div>
-                  <span className="text-sm font-semibold text-primary">
-                    R$ {parseFloat(rep.custoTotal).toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
-                {i < historico.length - 1 && <Separator />}
-              </div>
-            ))
+                ))}
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

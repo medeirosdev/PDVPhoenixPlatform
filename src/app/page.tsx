@@ -6,8 +6,11 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-xl font-bold mb-4">Registrar Venda</h1>
+      <div className="max-w-lg mx-auto space-y-4">
+        <div>
+          <h1 className="text-lg font-semibold">Registrar Venda</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Selecione os produtos e confirme</p>
+        </div>
         <RegistrarVendaClient produtos={produtos} />
       </div>
     </div>

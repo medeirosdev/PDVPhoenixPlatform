@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Minus, Plus, ShoppingCart, Check } from "lucide-react";
+import { Minus, Plus, ShoppingCart, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { registrarVenda } from "@/actions/vendas";
 import type { produtos as ProdutoType } from "@/db/schema";
 import { InferSelectModel } from "drizzle-orm";
@@ -69,16 +73,19 @@ export function RegistrarVendaClient({ produtos }: { produtos: Produto[] }) {
   return (
     <div className="space-y-4">
       {sucesso && (
-        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm text-primary">
-          <Check className="h-4 w-4" />
+        <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/8 px-3 py-2.5 text-sm text-primary">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           Venda registrada com sucesso!
         </div>
       )}
 
       {produtos.length === 0 ? (
-        <p className="text-muted-foreground text-center py-12">
-          Nenhum produto cadastrado ainda.
-        </p>
+        <div className="flex flex-col items-center gap-2 py-16 text-center">
+          <ShoppingCart className="h-10 w-10 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">
+            Nenhum produto cadastrado ainda.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {produtos.map((prod) => {
@@ -88,42 +95,45 @@ export function RegistrarVendaClient({ produtos }: { produtos: Produto[] }) {
             return (
               <Card
                 key={prod.id}
-                className={semEstoque ? "opacity-50" : ""}
+                className={`transition-opacity ${semEstoque ? "opacity-40" : ""}`}
               >
-                <CardContent className="p-3 space-y-2">
+                <CardContent className="p-3.5 space-y-3">
                   <div>
-                    <p className="font-medium text-sm leading-tight">{prod.nome}</p>
-                    <p className="text-primary font-bold">
-                      R$ {parseFloat(prod.precoVenda).toFixed(2).replace(".", ",")}
+                    <p className="font-medium text-sm leading-snug">{prod.nome}</p>
+                    <p className="text-base font-bold text-primary mt-0.5">
+                      R${parseFloat(prod.precoVenda).toFixed(2).replace(".", ",")}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {prod.estoqueAtual} em estoque
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Estoque: {prod.estoqueAtual}
-                  </p>
+
                   {qtd === 0 ? (
                     <Button
                       size="sm"
-                      className="w-full"
+                      className="w-full h-8 text-xs"
                       disabled={semEstoque}
                       onClick={() => add(prod.id)}
                     >
-                      {semEstoque ? "Sem estoque" : "Adicionar"}
+                      {semEstoque ? "Sem estoque" : "+ Adicionar"}
                     </Button>
                   ) : (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between rounded-lg bg-muted px-1 py-0.5">
                       <Button
                         size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
+                        variant="ghost"
+                        className="h-7 w-7"
                         onClick={() => remove(prod.id)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="font-bold text-primary">{qtd}</span>
+                      <span className="font-bold text-primary text-sm w-6 text-center">
+                        {qtd}
+                      </span>
                       <Button
                         size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
+                        variant="ghost"
+                        className="h-7 w-7"
                         onClick={() => add(prod.id)}
                         disabled={qtd >= prod.estoqueAtual}
                       >
@@ -142,52 +152,57 @@ export function RegistrarVendaClient({ produtos }: { produtos: Produto[] }) {
         <>
           <div className="fixed bottom-20 left-0 right-0 px-4 max-w-lg mx-auto">
             <Button
-              className="w-full h-12 text-base font-semibold shadow-lg"
+              className="w-full h-12 text-sm font-semibold shadow-lg shadow-primary/10"
               onClick={() => setSheetOpen(true)}
             >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Ver carrinho ({totalItens}) · R$ {totalValor.toFixed(2).replace(".", ",")}
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              {totalItens} {totalItens === 1 ? "item" : "itens"} ·
+              R$ {totalValor.toFixed(2).replace(".", ",")}
             </Button>
           </div>
+
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl max-h-[80vh]">
-            <SheetHeader>
-              <SheetTitle>Carrinho</SheetTitle>
-            </SheetHeader>
-            <div className="mt-4 space-y-3 overflow-y-auto">
-              {Object.entries(carrinho).map(([id, qtd]) => {
-                const prod = produtos.find((p) => p.id === id);
-                if (!prod) return null;
-                return (
-                  <div key={id} className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{prod.nome}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {qtd}x R$ {parseFloat(prod.precoVenda).toFixed(2).replace(".", ",")}
-                      </p>
+            <SheetContent side="bottom" className="rounded-t-2xl">
+              <SheetHeader className="pb-2">
+                <SheetTitle>Confirmar venda</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-3 mt-2">
+                {Object.entries(carrinho).map(([id, qtd]) => {
+                  const prod = produtos.find((p) => p.id === id);
+                  if (!prod) return null;
+                  return (
+                    <div key={id} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{prod.nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {qtd}× R$ {parseFloat(prod.precoVenda).toFixed(2).replace(".", ",")}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums">
+                        R$ {(parseFloat(prod.precoVenda) * qtd).toFixed(2).replace(".", ",")}
+                      </span>
                     </div>
-                    <span className="font-semibold">
-                      R$ {(parseFloat(prod.precoVenda) * qtd).toFixed(2).replace(".", ",")}
-                    </span>
-                  </div>
-                );
-              })}
-              <Separator />
-              <div className="flex items-center justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-primary">
-                  R$ {totalValor.toFixed(2).replace(".", ",")}
-                </span>
+                  );
+                })}
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Total</span>
+                  <span className="text-lg font-bold text-primary tabular-nums">
+                    R$ {totalValor.toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
+
+                <Button
+                  className="w-full h-11 font-semibold mt-1"
+                  onClick={confirmar}
+                  disabled={isPending}
+                >
+                  {isPending ? "Registrando..." : "Confirmar venda"}
+                </Button>
               </div>
-              <Button
-                className="w-full h-12 text-base font-semibold mt-2"
-                onClick={confirmar}
-                disabled={isPending}
-              >
-                {isPending ? "Registrando..." : "Confirmar Venda"}
-              </Button>
-            </div>
-          </SheetContent>
+            </SheetContent>
           </Sheet>
         </>
       )}

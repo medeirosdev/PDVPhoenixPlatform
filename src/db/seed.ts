@@ -1,12 +1,14 @@
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
 import bcrypt from "bcryptjs";
-import { db } from "./index";
-import { users, produtos } from "./schema";
 
 async function seed() {
   console.log("Seedando banco de dados...");
+  
+  const { db } = await import("./index.js");
+  const { users, produtos } = await import("./schema.js");
 
-  const hash = await bcrypt.hash("vendinha123", 12);
+  const hash = await bcrypt.hash("123", 12);
 
   await db
     .insert(users)
